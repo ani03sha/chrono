@@ -29,4 +29,34 @@ go.work.sum
 
 # Editor/IDE
 # .idea/
-# .vscode/
+.vscode/
+
+PROJECT_OVERVIEW.md
+
+# Go build artifacts
+*.test
+*.out
+*.exe
+
+# Coverage reports
+coverage.out
+coverage.html
+
+# Benchmark output (regenerated each run)
+BENCHMARKS.md
+
+# Built example binaries
+examples/lamport_messaging/lamport_messaging
+examples/vector_kv/vector_kv
+examples/hlc_db/hlc_db
+examples/truetime_external/truetime_external
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
