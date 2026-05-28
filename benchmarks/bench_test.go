@@ -90,9 +90,11 @@ func BenchmarkVectorTick3Nodes(b *testing.B) {
 	c := vector.NewFromMap("n0", nodesMap("n", 3, 1))
 	b.ReportAllocs()
 	b.ResetTimer()
+	var sink vector.Snapshot
 	for i := 0; i < b.N; i++ {
-		c.Tick()
+		sink = c.Tick()
 	}
+	_ = sink
 }
 
 // Target: < 1 µs/op.
@@ -101,9 +103,11 @@ func BenchmarkVectorReceive10Nodes(b *testing.B) {
 	remote := vector.NewFromMap("n0", nodesMap("n", 10, 100)).Now()
 	b.ReportAllocs()
 	b.ResetTimer()
+	var sink vector.Snapshot
 	for i := 0; i < b.N; i++ {
-		local.Receive(remote)
+		sink = local.Receive(remote)
 	}
+	_ = sink
 }
 
 // Target: < 200 ns/op, 0 allocs/op (Compare reads, doesn't allocate).
@@ -124,9 +128,11 @@ func BenchmarkVectorMarshal10Nodes(b *testing.B) {
 	snap := vector.NewFromMap("n0", nodesMap("n", 10, 1)).Now()
 	b.ReportAllocs()
 	b.ResetTimer()
+	var sink []byte
 	for i := 0; i < b.N; i++ {
-		_, _ = snap.MarshalBinary()
+		sink, _ = snap.MarshalBinary()
 	}
+	_ = sink
 }
 
 // Companion to Marshal — should be in the same ballpark.
@@ -182,13 +188,18 @@ func BenchmarkHLCReceive(b *testing.B) {
 
 // Companion: 12-byte allocation per call is the absolute minimum for a binary timestamp encoding.
 // We want to verify there's nothing extra.
+//
+// The sink is essential here — MarshalBinary is pure and tiny enough that the compiler will
+// dead-code-eliminate the whole call if the result is ignored, producing a misleading sub-ns/op result.
 func BenchmarkHLCMarshalBinary(b *testing.B) {
 	ts := hlc.Timestamp{WallTime: 1_700_000_000_000_000_000, Logical: 42}
 	b.ReportAllocs()
 	b.ResetTimer()
+	var sink []byte
 	for i := 0; i < b.N; i++ {
-		_, _ = ts.MarshalBinary()
+		sink, _ = ts.MarshalBinary()
 	}
+	_ = sink
 }
 
 // ────────────────────────── TrueTime ────────────────────────────────────
