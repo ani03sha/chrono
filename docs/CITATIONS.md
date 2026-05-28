@@ -50,24 +50,24 @@ commit-wait protocol for external consistency. Implemented in
 
 ## Production systems referenced
 
-- **Riak** — uses dotted version vectors since 2.0. https://riak.com/
+- **Riak:** uses dotted version vectors since 2.0. https://riak.com/
 
-- **CockroachDB** — HLC for transaction timestamps and snapshot reads.
+- **CockroachDB:** HLC for transaction timestamps and snapshot reads.
   Their "Living Without Atomic Clocks" blog post is essential
   background.
   https://www.cockroachlabs.com/blog/living-without-atomic-clocks/
 
-- **YugabyteDB** — HLC, same model as CockroachDB.
+- **YugabyteDB:** HLC, same model as CockroachDB.
   https://docs.yugabyte.com/
 
-- **MongoDB** — HLC variant for cross-shard transactions since 4.0.
+- **MongoDB:** HLC variant for cross-shard transactions since 4.0.
 
-- **Amazon Dynamo (2007 paper)** — vector clocks for sibling detection
+- **Amazon Dynamo (2007 paper):** vector clocks for sibling detection
   in a leaderless store. Successor systems (DynamoDB) moved to other
   mechanisms, but the paper is canonical reading.
   https://www.allthingsdistributed.com/files/amazon-dynamo-sosp2007.pdf
 
-- **Google Spanner** — TrueTime in production. Spanner papers and the
+- **Google Spanner:** TrueTime in production. Spanner papers and the
   Cloud Spanner documentation describe the system as deployed.
   https://cloud.google.com/spanner
 
@@ -84,7 +84,7 @@ commit-wait protocol for external consistency. Implemented in
 
 ## NTP protocol references
 
-- **RFC 4330** — Simple Network Time Protocol (SNTP). The protocol
+- **RFC 4330**: Simple Network Time Protocol (SNTP). The protocol
   `truetime/ntp_source.go` implements.
-- **RFC 5905** — Network Time Protocol v4 (the full one; we implement
+- **RFC 5905**: Network Time Protocol v4 (the full one; we implement
   the SNTP subset).

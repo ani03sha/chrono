@@ -5,17 +5,7 @@ each primitive.
 
 ## 30-second decision guide
 
-```
-Do you need timestamps that humans (or wall-clock comparisons) can read?
-├─ No  → Do you need to *detect* concurrent events?
-│       ├─ No  → Lamport
-│       └─ Yes → Do actors join/leave dynamically (clients, sessions)?
-│               ├─ No  → Vector
-│               └─ Yes → Dotted
-└─ Yes → Do you need external consistency (real-time-ordered commits)?
-        ├─ No  → HLC
-        └─ Yes → TrueTime
-```
+![30 Second Decision Rule](/docs/chrono_clocks.png)
 
 ## Lamport
 

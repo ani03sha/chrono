@@ -1,8 +1,8 @@
-# chrono
+# Chrono
 
 A Go library implementing the four major distributed-systems clock
-primitives — Lamport, vector, hybrid logical, and bounded-uncertainty
-(TrueTime-style) — plus a `proofs/` package that reproduces the exact
+primitives: **Lamport**, **vector**, **hybrid logical**, and **bounded-uncertainty
+(TrueTime-style)**, plus a `proofs/` package that reproduces the exact
 failure scenarios the original papers warn about.
 
 ## Why these primitives matter
@@ -13,17 +13,11 @@ to the same NTP server still disagree by tens of milliseconds at any
 moment. Any system that timestamps events with raw wall time is one
 NTP correction away from producing wrong answers.
 
-Each primitive in chrono solves a different version of this problem.
-Lamport clocks give you causal ordering with a single integer counter —
-enough to build distributed mutexes and ordered logs. Vector clocks add
-concurrency detection, which is what a leaderless KV store needs to
-surface conflicting writes instead of silently overwriting them. Hybrid
-logical clocks combine wall time with a logical counter, producing
-timestamps that are both causal *and* approximately meaningful to
-humans — the property CockroachDB, YugabyteDB, and MongoDB rely on.
-TrueTime-style bounded-uncertainty clocks return an *interval*
-containing true global time, which is what Spanner uses to achieve
-external consistency across regions.
+Each primitive in **chrono** solves a different version of this problem.
+- Lamport clocks give you causal ordering with a single integer counter; enough to build distributed mutexes and ordered logs. 
+- Vector clocks add concurrency detection, which is what a leaderless KV store needs to surface conflicting writes instead of silently overwriting them. 
+- Hybrid logical clocks combine wall time with a logical counter, producing timestamps that are both causal _and_ approximately meaningful to humans (the property CockroachDB, YugabyteDB, and MongoDB rely on).
+- TrueTime-style bounded-uncertainty clocks return an _interval_ containing true global time, which is what Spanner uses to achieve external consistency across regions.
 
 When to use which: see [docs/COMPARISON.md](./docs/COMPARISON.md).
 
@@ -124,73 +118,61 @@ This is what distinguishes chrono from a typical clock library. Every
 primitive's behavior is demonstrated against a specific scenario from
 the literature or from real production incidents:
 
-| Test | Reproduces |
-|---|---|
-| `TestLamport1978Figure2` | Lamport (1978) Figure 2 — three-process message ring with monotonic timestamps along every causal chain |
-| `TestNTPStepCausesIncorrectOrderingWithWallClock` | Sorting events by raw wall time fails under an NTP backward step; the same sort by HLC stamps preserves real-time order |
-| `TestSpannerExternalConsistency` | Corbett et al. (2012) — commit-wait on a TrueTime interval achieves external consistency |
-| `TestDottedVersionDetectsConcurrentWrites` | Preguiça et al. (2010) — concurrent writes surface as siblings instead of being silently overwritten |
-| `TestHLCPreservesCausalityAcrossSkewedNodes` | Kulkarni et al. (2014), as deployed in CockroachDB — HLC preserves causality across nodes whose wall clocks differ by tens of ms |
+| Test                                              | Reproduces                                                                                                                       |
+| ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `TestLamport1978Figure2`                          | Lamport (1978) Figure 2 — three-process message ring with monotonic timestamps along every causal chain                          |
+| `TestNTPStepCausesIncorrectOrderingWithWallClock` | Sorting events by raw wall time fails under an NTP backward step; the same sort by HLC stamps preserves real-time order          |
+| `TestSpannerExternalConsistency`                  | Corbett et al. (2012) — commit-wait on a TrueTime interval achieves external consistency                                         |
+| `TestDottedVersionDetectsConcurrentWrites`        | Preguiça et al. (2010) — concurrent writes surface as siblings instead of being silently overwritten                             |
+| `TestHLCPreservesCausalityAcrossSkewedNodes`      | Kulkarni et al. (2014), as deployed in CockroachDB — HLC preserves causality across nodes whose wall clocks differ by tens of ms |
 
-Run with `make proofs` (verbose) or `go test -v ./proofs/`. These are
-executable evidence, not unit tests — anyone skeptical of "this library
-handles X" can run the file that demonstrates X happening.
+Run with `make proofs` (verbose) or `go test -v ./proofs/`. These are executable evidence, not unit tests — anyone skeptical of "this library handles X" can run the file that demonstrates X happening.
 
 ## Benchmarks
 
-Hardware: Apple M3 Pro, Go 1.26.1, `darwin/arm64`. Full numbers in
-[BENCHMARKS.md](./BENCHMARKS.md), generated by `make bench`.
+Hardware: Apple M3 Pro, Go 1.26.1, `darwin/arm64`. Full numbers in [BENCHMARKS.md](./BENCHMARKS.md), generated by `make bench`.
 
-| Operation | Target | Measured |
-|---|---|---|
-| `wallclock.Real.NowNanos` (baseline) | — | 30.1 ns/op, 0 allocs |
-| `lamport.Tick` | < 50 ns/op, 0 allocs | **4.6 ns/op, 0 allocs** |
-| `lamport.Send` | < 50 ns/op, 0 allocs | **4.2 ns/op, 0 allocs** |
-| `lamport.Receive` | < 60 ns/op, 0 allocs | **4.0 ns/op, 0 allocs** |
-| `vector.Tick` (3 nodes) | < 200 ns/op | **132 ns/op, 2 allocs** |
-| `vector.Receive` (10 nodes) | < 1 µs/op | **442 ns/op, 4 allocs** |
-| `vector.Compare` (10 nodes) | < 200 ns/op | 298 ns/op, 0 allocs ⚠ |
-| `vector.MarshalBinary` (10 nodes) | < 500 ns/op | **341 ns/op, 2 allocs** |
-| `vector.UnmarshalBinary` (10 nodes) | — | 257 ns/op, 14 allocs |
-| `hlc.Now` | < 100 ns/op, 0 allocs | **40 ns/op, 0 allocs** |
-| `hlc.Send` | < 100 ns/op, 0 allocs | **38 ns/op, 0 allocs** |
-| `hlc.Receive` | < 150 ns/op, 0 allocs | **39 ns/op, 0 allocs** |
-| `hlc.MarshalBinary` | — | 8.8 ns/op, 1 alloc (16 B) |
-| `truetime.Now` (FakeSource) | < 100 ns/op, 0 allocs | **8.8 ns/op, 0 allocs** |
+| Operation                            | Target                | Measured                  |
+| ------------------------------------ | --------------------- | ------------------------- |
+| `wallclock.Real.NowNanos` (baseline) | —                     | 30.1 ns/op, 0 allocs      |
+| `lamport.Tick`                       | < 50 ns/op, 0 allocs  | **4.6 ns/op, 0 allocs**   |
+| `lamport.Send`                       | < 50 ns/op, 0 allocs  | **4.2 ns/op, 0 allocs**   |
+| `lamport.Receive`                    | < 60 ns/op, 0 allocs  | **4.0 ns/op, 0 allocs**   |
+| `vector.Tick` (3 nodes)              | < 200 ns/op           | **132 ns/op, 2 allocs**   |
+| `vector.Receive` (10 nodes)          | < 1 µs/op             | **442 ns/op, 4 allocs**   |
+| `vector.Compare` (10 nodes)          | < 200 ns/op           | 298 ns/op, 0 allocs ⚠     |
+| `vector.MarshalBinary` (10 nodes)    | < 500 ns/op           | **341 ns/op, 2 allocs**   |
+| `vector.UnmarshalBinary` (10 nodes)  | —                     | 257 ns/op, 14 allocs      |
+| `hlc.Now`                            | < 100 ns/op, 0 allocs | **40 ns/op, 0 allocs**    |
+| `hlc.Send`                           | < 100 ns/op, 0 allocs | **38 ns/op, 0 allocs**    |
+| `hlc.Receive`                        | < 150 ns/op, 0 allocs | **39 ns/op, 0 allocs**    |
+| `hlc.MarshalBinary`                  | —                     | 8.8 ns/op, 1 alloc (16 B) |
+| `truetime.Now` (FakeSource)          | < 100 ns/op, 0 allocs | **8.8 ns/op, 0 allocs**   |
 
 Notes:
 
-- **`vector.Compare` exceeds its target.** The algorithm performs ~20
-  map operations on 10-node maps; Go map access on M3 Pro is ~15ns
-  each, putting the realistic floor near 300 ns/op. The original target
-  was optimistic; the actual cost is honest.
-- **`vector.UnmarshalBinary`'s 14 allocs/op** come from per-node
-  `string(bytes)` conversions plus map machinery. They could be
-  eliminated with `unsafe.String`, but the safety trade isn't worth
-  it for a teaching codebase.
-- **`hlc.MarshalBinary`'s 16 B/op** is Go's allocator rounding the
-  12-byte slice up to its minimum 16-byte size class.
+- **`vector.Compare` exceeds its target.** The algorithm performs ~20 map operations on 10-node maps; Go map access on M3 Pro is ~15ns each, putting the realistic floor near 300 ns/op. The original target was optimistic; the actual cost is honest.
+- **`vector.UnmarshalBinary`'s 14 allocs/op** come from per-node `string(bytes)` conversions plus map machinery. They could be eliminated with `unsafe.String`, but the safety trade isn't worth it for a teaching codebase.
+- **`hlc.MarshalBinary`'s 16 B/op** is Go's allocator rounding the 12-byte slice up to its minimum 16-byte size class.
 
 ## Comparison at a glance
 
-| Clock | Total order | Causal | Wall-time | Use when |
-|---|---|---|---|---|
-| Lamport | No | Yes | No | basic happens-before; no node identity needed |
-| Vector | No | Yes | No | detect concurrency between specific nodes |
-| Dotted | No | Yes | No | leaderless replication with sibling resolution |
-| HLC | Yes | Yes | Approx | timestamps that are both causal and human-readable |
-| TrueTime | Yes | Yes | Bounded | external consistency (Spanner-class systems) |
+| Clock    | Total order | Causal | Wall-time | Use when                                           |
+| -------- | ----------- | ------ | --------- | -------------------------------------------------- |
+| Lamport  | No          | Yes    | No        | basic happens-before; no node identity needed      |
+| Vector   | No          | Yes    | No        | detect concurrency between specific nodes          |
+| Dotted   | No          | Yes    | No        | leaderless replication with sibling resolution     |
+| HLC      | Yes         | Yes    | Approx    | timestamps that are both causal and human-readable |
+| TrueTime | Yes         | Yes    | Bounded   | external consistency (Spanner-class systems)       |
 
 Full discussion: [docs/COMPARISON.md](./docs/COMPARISON.md).
 
 ## Production systems using each primitive
 
-- **Lamport**: distributed mutexes (Ricart–Agrawala), various consensus
-  protocols, log merging, foundational theory for everything else.
+- **Lamport**: distributed mutexes (Ricart–Agrawala), various consensus protocols, log merging, foundational theory for everything else.
 - **Vector**: Riak (pre-2.0), Voldemort, Amazon Dynamo (2007 paper).
 - **Dotted**: Riak (2.0+), Antidote, various CRDT libraries.
-- **HLC**: CockroachDB, YugabyteDB, MongoDB (cross-shard transactions
-  since 4.0).
+- **HLC**: CockroachDB, YugabyteDB, MongoDB (cross-shard transactions since 4.0).
 - **TrueTime**: Google Spanner.
 
 Citations and links: [docs/CITATIONS.md](./docs/CITATIONS.md).
@@ -200,10 +182,8 @@ Citations and links: [docs/CITATIONS.md](./docs/CITATIONS.md).
 Before submitting a PR:
 
 - `make test-race` must pass.
-- `make bench` must not regress relevant numbers (compare with
-  `benchstat`).
-- New behavior gets a unit test. New failure mode gets a `proofs/`
-  test.
+- `make bench` must not regress relevant numbers (compare with `benchstat`).
+- New behavior gets a unit test. New failure mode gets a `proofs/` test.
 
 Design rationale for non-obvious API choices:
 [docs/DESIGN.md](./docs/DESIGN.md).

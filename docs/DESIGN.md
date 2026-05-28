@@ -6,7 +6,7 @@ The non-obvious API choices in chrono, with the reasoning behind them.
 
 `hlc` and `truetime` depend on the wall clock. Rather than calling
 `time.Now()` directly, they accept a `wallclock.Clock` interface. This
-exists so tests can drive time deterministically — the `proofs/`
+exists so tests can drive time deterministically: the `proofs/`
 package uses `wallclock.NewFake` to simulate NTP backward steps, the
 `hlc/` unit tests step the clock to exercise every branch of the
 receive algorithm, and so on.
@@ -57,21 +57,15 @@ much below that without giving up the map.
 
 ## `vector.Compare` is a package-level function, not a method
 
-Comparison is symmetric — neither operand is "more important." A
+Comparison is symmetric, i.e., neither operand is "more important." A
 method like `a.Compare(b)` implies a primary subject. The function
-form `Compare(a, b)` reads like math. This matches Go stdlib
+form `Compare(a, b)` reads like math. This matches Go `stdlib`
 conventions (`reflect.DeepEqual` is also a function for the same
 reason).
 
 ## Sentinel errors
 
-`ErrMaxDriftExceeded`, `ErrCorruptEncoding`, and friends are
-package-level sentinel values, not strings. Callers can use
-`errors.Is` to detect them, and the static type system makes typos
-visible at compile time. The accompanying `fmt.Errorf("%w: ...",
-ErrMaxDriftExceeded, ...)` pattern wraps the sentinel with operational
-context (which timestamp was rejected, what the local clock was)
-without breaking the detection.
+`ErrMaxDriftExceeded`, `ErrCorruptEncoding`, and friends are package-level sentinel values, not strings. Callers can use `errors.Is` to detect them, and the static type system makes typos visible at compile time. The accompanying `fmt.Errorf("%w: ...", ErrMaxDriftExceeded, ...)` pattern wraps the sentinel with operational context (which timestamp was rejected, what the local clock was) without breaking the detection.
 
 ## Pointer receivers on all clock methods
 
@@ -160,5 +154,5 @@ between minor versions and will be noted in `CHANGELOG.md` with an
 `[API]` prefix on the relevant entry. Migration guidance will be
 included for any deliberately-incompatible change.
 
-After v1.0.0, semantic versioning applies in the strict sense — no
+After v1.0.0, semantic versioning applies in the strict sense - no
 breaking changes within a major version.
